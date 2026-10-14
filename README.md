@@ -38,3 +38,7 @@ pnpm tauri build      # production build (.app / .dmg / installers)
 
 - To preview the frontend alone in a browser, use `pnpm dev` (Rust `invoke` calls will not work).
 - To check the Rust side only, run `cargo check` / `cargo build` in `src-tauri/`.
+
+## License
+
+[MIT](LICENSE)

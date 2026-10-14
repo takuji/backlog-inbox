@@ -2,7 +2,8 @@
 name = "backlog-inbox"
 version = "0.8.0"
 description = "Backlog Inbox keeps you up to date with Backlog notifications and issues"
-authors = ["you"]
+authors = ["Takuji Shimokawa"]
+license = "MIT"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

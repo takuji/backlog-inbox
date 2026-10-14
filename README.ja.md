@@ -38,3 +38,7 @@ pnpm tauri build      # 配布用ビルド(.app / .dmg / インストーラを�
 
 - フロントエンドのみをブラウザーで確認する場合は `pnpm dev`(Rust の `invoke` は動きません)
 - Rust 側だけの確認は `src-tauri/` で `cargo check` / `cargo build`
+
+## ライセンス
+
+[MIT](LICENSE)
