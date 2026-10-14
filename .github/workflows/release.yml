@@ -1,0 +1,64 @@
+name: Release (macOS)
+
+on:
+  # バージョンタグ (v0.1.0 など) を push するとリリースをビルドする。
+  # push:
+  #   tags:
+  #     - "v*"
+  # 手動実行 (workflow_dispatch) でも起動できる。
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: macos-latest
+    permissions:
+      contents: write # リリースの作成・アセットのアップロードに必要
+    environment: macos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Rust (universal targets)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache cargo build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build, sign, notarize and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # --- コード署名 (Developer ID Application) ---
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          # --- 公証 (notarization) ---
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          # Intel/Apple Silicon 両対応のユニバーサルバイナリをビルドする
+          args: --target universal-apple-darwin
+          tagName: ${{ github.ref_name }}
+          releaseName: "Backlog Inbox ${{ github.ref_name }}"
+          releaseDraft: true
+          prerelease: false

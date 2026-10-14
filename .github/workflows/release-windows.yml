@@ -1,0 +1,53 @@
+name: Release (Windows)
+
+on:
+  # バージョンタグ (v0.1.0 など) を push するとリリースをビルドする。
+  # push:
+  #   tags:
+  #     - "v*"
+  # 手動実行 (workflow_dispatch) でも起動できる。
+  workflow_dispatch:
+
+jobs:
+  # Windows 向けビルド。macOS 用ワークフローとは独立して動き、同じドラフト
+  # リリースへアセット(.msi / .exe インストーラ)をアップロードする。
+  # コード署名はしない。
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write # リリースの作成・アセットのアップロードに必要
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Backlog Inbox ${{ github.ref_name }}"
+          releaseDraft: true
+          prerelease: false
